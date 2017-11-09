@@ -186,7 +186,7 @@ void exibiMatrizNormalizada(float matrizDadosNormalizada[lin][col])
     printf("Matriz normalizada\n");
     for(i=0; i<lin; i++)
     {
-        for(j=0; j<7; j++)
+        for(j=0; j<col; j++)
         {
             printf("[%.3f]", matrizDadosNormalizada[i][j]);
         }
@@ -249,54 +249,52 @@ int main (void )
     float vetorMaior[col] = {};
     float vetorMenor[col] = {};
     float vetorResul[col] = {};
-
+   
     int op = 0;
     int i,j;
     float matrizDadosNormalizada[lin][col] = {};
-    float aux1[lin] = {};
+    //float aux1[lin] = {};
     omp_set_num_threads(NUM_THREADS);
-
-    #pragma omp parallel
-    #pragma omp for schedule(static)
-    for(int j=0; j<col; j++)
-    {
-        float maior = matrizDados[0][j];
-
-        for(int i=0; i<lin; i++)
+    
+        
+        #pragma omp for schedule(static,8)                
+        for(int j=0; j<col; j++)
         {
-            if(matrizDados[i][j]>maior)   //este trecho recebe o maior valor da linha da matriz
+            float maior = 0;
+            for(int i=0; i<lin; i++)
             {
-                maior=matrizDados[i][j];  //e armazena este valor em um vetor
+                if(matrizDados[i][j]>maior)   //este trecho recebe o maior valor da linha da matriz
+                {
+                    maior=matrizDados[i][j];  //e armazena este valor em um vetor
+                }
             }
+            //printf("%f\n", maior);
+            vetorMaior[j]=maior;
         }
-        vetorMaior[j]=maior;
-        maior=0;
-    }
-
-
-
-    #pragma omp parallel
-    #pragma omp for schedule(static)
-    for(int j=0; j<col; j++)
-    {
-        float menor=matrizDados[0][j];
-
-        for(int i=0; i<lin; i++)
+        
+        
+        #pragma omp for schedule(static,8)                
+        for(int j=0; j<col; j++)
         {
-            if(matrizDados[i][j]<menor)  //este trecho recebe o maior valor da linha da matriz
-                menor=matrizDados[i][j];  //e armazena este valor em um vetor
+            float menor = FLT_MAX;
+            for(int i=0; i<lin; i++)
+            {
+                if(menor > matrizDados[i][j])
+                {
+                    menor=matrizDados[i][j];
+                    //printf("%f\n", menor);
+                }
+            }
+            //printf("%lf", menor);
+            vetorMenor[j]=menor;
         }
-        vetorMenor[j]=menor;
-        menor=0;
-    }
-
+            
     #pragma omp barrier
 
     //tem que colocar um lock aqui pra n�o fazer a normaliza��o enquanto
     // se encontra os maiores e menores dados da matriz que est�o sendo salvos nos vetores
-    #pragma omp parallel
-    {
-        #pragma omp for schedule(runtime)
+   
+        #pragma omp for schedule(static,8)
         for(int i=0; i<lin; i++)
         {
             for(int j=0; j<col; j++)
@@ -312,30 +310,28 @@ int main (void )
                 }
             }
         }
-    }
-
+    
+    //float sum = 0;
     // faz a multiplicasao por pesos em paralelo
-    #pragma omp parallel
-    {
-        #pragma omp for schedule(runtime)
+    #pragma omp for
         for(i=0; i<lin; i++)
         {
             vetorResul[i] = 0;
             for(j=0; j<col; j++)
             {
                 vetorResul[i] += matrizDadosNormalizada[i][j] * vetorPesos[j];
+                //sum += vetorResul[i] ;
             }
         }
-    }
-
-
     
+
+
+    // qsort(vetorResul,lin,sizeof(float), ordena);
 
     //exibiMatriz(matrizDados);
     //exibivetorMaior(vetorMaior);
     //exibivetorMenor(vetorMenor);
     // exibiMatrizNormalizada(matrizDadosNormalizada);
-    // qsort(vetorResul,lin,sizeof(float), ordena);
      exibivetorResul(vetorResul);
 
     return 0;
