@@ -274,12 +274,12 @@ int main (void )
     //Declaracao da Matriz e vetores
     float vetorPesos[col]     =  {0.162, 0.162, 0.162, 0.162};
 
-    float vetorMaior[col] = {};
-    float vetorMenor[col] = {};
-    float vetorResul[col] = {};
+    float vetorMaior[col];
+    float vetorMenor[col];
+    float vetorResul[col];
 
-    float matrizDadosNormalizada[lin][col] = {};
-    float aux1[lin] = {};
+    float matrizDadosNormalizada[lin][col];
+    float aux1[lin];
     //exibiMatriz(matrizDados);
     CalculavetorMaior(vetorMaior, matrizDados);
     CalculavetorMenor(vetorMenor, matrizDados);
